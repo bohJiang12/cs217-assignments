@@ -1,8 +1,5 @@
 import unittest
 
-import os
-import time
-
 from notes import (
     Note,
     Notebook,
@@ -68,7 +65,7 @@ class TestNotebook(unittest.TestCase):
 
     def test_search_notes(self):
         """
-        To test the function for search notes given a term that might be in the note
+        Test the function for search notes given a term that might be in the note
         """
         self.nb.add('1', 'Today is Friday.')
         self.nb.add('2', 'I passed my exam!')
@@ -77,6 +74,27 @@ class TestNotebook(unittest.TestCase):
         self.assertEqual(['1', '3'], self.nb.find('friday'))
         self.assertEqual(['2'], self.nb.find('exam'))
         self.assertEqual([], self.nb.find('Monday'))
+
+    def test_search_by_term(self):
+        """
+        Test the behavior of searching matched notes given a term
+        """
+        self.nb.add(name='Wed', text="It's a rainy day.")
+        self.assertEqual(['Wed'], self.nb.find('rainy'))
+        self.assertEqual([], self.nb.find('sunny'))
+
+    def test_list_notes(self):
+        """
+        Test the functionality of listing current notes in notebook
+        """
+        # when it's empty
+        self.assertEqual(0, len(self.nb.notes()))
+        self.assertEqual([], self.nb.notes())
+
+        # when non-empty
+        self.nb.add('1', 'first')
+        self.nb.add('2', 'second')
+        self.assertEqual(['1', '2'], self.nb.notes())
 
 
 

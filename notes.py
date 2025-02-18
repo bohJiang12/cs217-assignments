@@ -5,7 +5,8 @@ The module implements a note-taking app, and it supports following functions:
     * Find a note by searching user-provided term(s)
     * Display contents of a note from user-entered note's name
 
-TODO: List examples (usages)
+TODO:
+    - [ ] decision for loading last session or new session
 
 In general, this note-taking app (or say notebook) has the following scheme:
 ---
@@ -15,7 +16,7 @@ Notebook
         |--- contents
 ---
 """
-from multiprocessing.connection import Listener
+
 from typing import Dict, List
 
 import pickle as pkl
@@ -27,6 +28,27 @@ from nltk.tokenize import RegexpTokenizer
 CACHE_DIR = Path.cwd() / '.cache'
 DEFAULT_FILE = Path('recent_notes.pkl')
 
+
+class Note:
+    """Note class consisting of `name` and `contents` attributes"""
+
+    def __init__(self, name: str, contents: str):
+        self._name = name
+        self._text = contents
+
+    def text(self) -> str:
+        """Return the contents of the note"""
+        return self._text
+
+    def name(self):
+        """Return the name of the note"""
+        return self._name
+
+    def update(self, new_text: str):
+        """Update note's contents"""
+        self._text = new_text
+
+
 class Notebook:
     """Notebook class containing `Note` objects"""
     def __init__(self):
@@ -37,9 +59,9 @@ class Notebook:
         self._notes[note_name].update(new_contents)
         self._auto_save()
 
-    def __getitem__(self, note_name: str):
+    def __getitem__(self, note_name: str) -> Note:
         """Retrieve `Note` object by its name as string"""
-        return self._notes[note_name]
+        return self._notes.get(note_name, Note('', ''))
 
     def _load_cache_notes(self):
         """
@@ -75,8 +97,18 @@ class Notebook:
             pkl.dump(self._notes, f)
 
     def notes(self):
-        """Return names of existing notes"""
-        return set(self._notes.keys())
+        """
+        Return names of existing notes
+
+        >>> nb = Notebook()
+        >>> nb.add('1', 'first')
+        True
+        >>> nb.add('2', 'second')
+        True
+        >>> nb.notes()
+        {'1', '2'}
+        """
+        return [note for note in self._notes]
 
     def add(self, name: str, text: str) -> bool:
         """
@@ -121,24 +153,3 @@ class Notebook:
                 results.append(name)
 
         return results
-
-
-
-class Note:
-    """Note class consisting of `name` and `contents` attributes"""
-
-    def __init__(self, name: str, contents: str):
-        self._name = name
-        self._text = contents
-
-    def text(self) -> str:
-        """Return the contents of the note"""
-        return self._text
-
-    def name(self):
-        """Return the name of the note"""
-        return self._name
-
-    def update(self, new_text: str):
-        """Update note's contents"""
-        self._text = new_text
