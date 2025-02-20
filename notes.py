@@ -78,7 +78,7 @@ class Notebook:
                 return {}
 
         # Otherwise, create a cache directory
-        CACHE_DIR.mkdir()
+        CACHE_DIR.mkdir(exist_ok=True)
 
         return {}
 
@@ -153,3 +153,24 @@ class Notebook:
                 results.append(name)
 
         return results
+
+    def clear(self):
+        """
+        Clear all existing notes in the notebook
+
+        Usage:
+        ---
+
+        >>> nb = Notebook()
+        >>> nb.add(name='1', text='first')
+        >>> nb.clear()
+        True
+        """
+        # Clear cached notes
+        for cache in CACHE_DIR.iterdir():
+            cache.unlink(missing_ok=True)
+
+        # Reset attributes
+        self.__init__()
+
+

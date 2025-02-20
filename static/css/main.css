@@ -1,0 +1,27 @@
+body {
+    background-color: lightyellow;
+    font-size: 18px;
+}
+
+h1 {
+    border: thin solid darkred;
+    background-color: #eee;
+    padding: 10px;
+}
+
+h2 {
+    border: thin solid rgb(11, 11, 11);
+    font-size: 20px;
+    padding: 10px;
+}
+
+
+p {
+    border: thin solid rgb(11, 11, 11);
+    font-size: 16px;
+    padding: 10px;
+}
+
+p.larger {
+    font-size: 24px;
+}

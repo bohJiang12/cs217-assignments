@@ -96,6 +96,19 @@ class TestNotebook(unittest.TestCase):
         self.nb.add('2', 'second')
         self.assertEqual(['1', '2'], self.nb.notes())
 
+    def test_clear_nb(self):
+        """
+        Test the functionality of clearing the notebook
+        """
+        self.nb.add('1', 'first')
+        self.nb.add('2', 'second')
+        self.nb.add('3', 'third')
+
+        self.nb.clear()
+
+        print(self.nb.notes())
+
+        self.assertEqual(0, len(self.nb.notes()))
 
 
 

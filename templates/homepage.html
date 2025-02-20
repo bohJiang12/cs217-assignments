@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+</head>
+
+
+<body>
+    <h1>Notebook</h1>
+
+    <!--Search term-->
+    <form action="/" method="post">
+        <label for="search">Search term:</label>
+        <input type="text" name="search"/>
+        <input type="submit" value="Search"/>
+    </form>
+
+    <!--List all notes from last session-->
+    <h2>
+        <b>All notes</b> <br><br>
+        {% for note in notes %}
+            <a href="{{ url_for('fetch_notes', name=note) }}">{{ note }}</a><br>
+        {% endfor %}
+    </h2>
+
+    <!-- Buttons: Show All Notes & Clear Notebook -->
+    <form action="/clear" method="post" style="display:inline;">
+        <button type="submit">Clear</button>
+    </form>
+    <a href="/"><button type="button">Show All Notes</button></a>
+
+    <!--The field for adding new note-->
+    <h2>
+        <form action="/" method="post">
+            <label for="name"></label>
+            <textarea name="name" rows="1" cols="50"></textarea>
+            <br>
+            <label for="text"></label>
+            <textarea id="text" name="text" rows="10" cols="50" required></textarea>
+            <br>
+            <button type="submit">Add Note</button>
+        </form>
+    </h2>
+</body>
+
+
+</html>
