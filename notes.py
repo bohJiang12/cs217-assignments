@@ -5,9 +5,6 @@ The module implements a note-taking app, and it supports following functions:
     * Find a note by searching user-provided term(s)
     * Display contents of a note from user-entered note's name
 
-TODO:
-    - [ ] decision for loading last session or new session
-
 In general, this note-taking app (or say notebook) has the following scheme:
 ---
 Notebook
@@ -106,7 +103,7 @@ class Notebook:
         >>> nb.add('2', 'second')
         True
         >>> nb.notes()
-        {'1', '2'}
+        ['1', '2']
         """
         return [note for note in self._notes]
 
