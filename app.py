@@ -16,6 +16,11 @@ nb = Notebook()
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
+    """Index/home page of the website which supports either GET/POST
+
+    Returns:
+        a rendered website from a template
+    """
     notes = nb.notes()
 
     if request.method == 'POST':
@@ -40,6 +45,11 @@ def help():
 
 @app.route('/notes')
 def fetch_notes():
+    """Load a note's contents in the page `/notes`
+
+    Returns:
+        a rendered page displaying contents of a note
+    """
     note_name = request.args.get("name")
     note_text = nb[note_name].text()
 
@@ -48,11 +58,13 @@ def fetch_notes():
 
 @app.route('/clear', methods=['POST'])
 def clear_notes():
+    """Clear current notebook
+
+    Returns:
+        return to homepage
+    """
     nb.clear()
-
     return redirect(url_for('index'))
-
-
 
 
 if __name__ == '__main__':
