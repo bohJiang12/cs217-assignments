@@ -14,160 +14,100 @@ Notebook
 ---
 """
 
-from typing import Dict, List
+"""
+TODO:
 
-import pickle as pkl
-from pathlib import Path
+- [x] Create a new note
+- [x] Show only names of all existing notes
+- [x] Show only names of notes (&their comments) containing given term
+- [x] Given a note's name, return its contents and related comments
+- [x] Delete a note with its comments
+- [x] Add a comment to a note
+"""
 
-from nltk.tokenize import RegexpTokenizer
 
-
-CACHE_DIR = Path.cwd() / '.cache'
-DEFAULT_FILE = Path('recent_notes.pkl')
-
-
-class Note:
-    """Note class consisting of `name` and `contents` attributes"""
-
-    def __init__(self, name: str, contents: str):
-        self._name = name
-        self._text = contents
-
-    def text(self) -> str:
-        """Return the contents of the note"""
-        return self._text
-
-    def name(self):
-        """Return the name of the note"""
-        return self._name
-
-    def update(self, new_text: str):
-        """Update note's contents"""
-        self._text = new_text
+from typing import List, Set
+from sqlalchemy.exc import IntegrityError
+from notebook.model import Note, Comment
+from notebook import db, app
 
 
 class Notebook:
-    """Notebook class containing `Note` objects"""
-    def __init__(self):
-        self._notes: Dict[str, Note] = self._load_cache_notes()
-        self._inv_notes: Dict[str, str] = {note.text(): name for name, note in self._notes.items()}
+    """Notebook kernel interacting between Flask web server and backend database"""
 
-    def __setitem__(self, note_name, new_contents):
-        self._notes[note_name].update(new_contents)
-        self._auto_save()
+    @staticmethod
+    def show_all_note_names() -> List[str]:
+        return db.session.query(Note.name).all()
 
-    def __getitem__(self, note_name: str) -> Note:
-        """Retrieve `Note` object by its name as string"""
-        return self._notes.get(note_name, Note('', ''))
+    @staticmethod
+    def add_note(name: str, text: str):
+        try:
+            note = Note(name=name, text=text)
+            db.session.add(note)
+            db.session.commit()
+            return True
+        except IntegrityError as e:
+            db.session.rollback()
+            return e
 
-    def _load_cache_notes(self):
-        """
-        Check and load notes from last session
-        """
-        # Check if the cache directory exists first,
-        # then check if there's any cached notes from last session
-        if CACHE_DIR.exists():
-            cached_notes = CACHE_DIR / DEFAULT_FILE
-            try:
-                with open(cached_notes, 'rb') as f:
-                    return pkl.load(f)
-            except FileNotFoundError:
-                return {}
+    @staticmethod
+    def add_comment(text: str, note_id: int) -> bool:
+        # Sanity check even though assuming its tailored note exists
+        note = db.session.execute(
+            db.select(Note).filter_by(id=note_id)
+        ).first()
 
-        # Otherwise, create a cache directory
-        CACHE_DIR.mkdir(exist_ok=True)
+        if not note:
+            print(f'Queried note (id={note_id}) does not exist')
+            return False
 
-        return {}
-
-    def _auto_save(self):
-        """
-        Auto-save the notebook into cached file at real time
-        ---
-        The function will only be called when
-            * new note is added
-            * existing note is updated
-        """
-        assert self._notes is not None
-
-        with open(CACHE_DIR / DEFAULT_FILE, 'wb') as f:
-            # noinspection PyTypeChecker
-            pkl.dump(self._notes, f)
-
-    def notes(self):
-        """
-        Return names of existing notes
-
-        >>> nb = Notebook()
-        >>> nb.add('1', 'first')
-        True
-        >>> nb.add('2', 'second')
-        True
-        >>> nb.notes()
-        ['1', '2']
-        """
-        return [note for note in self._notes]
-
-    def add(self, name: str, text: str) -> bool:
-        """
-        Add new notes with given name and text
-
-        >>> nb = Notebook()
-        >>> nb.add('nlp', 'system')
-        True
-        """
-        self._notes.update({name: Note(name, text)})
-        self._inv_notes.update({text: name})
-        self._auto_save()
-
+        new_comment = Comment(text=text, note_id=note_id)
+        db.session.add(new_comment)
+        db.session.commit()
         return True
 
-    def find(self, term: str) -> List[str]:
-        """
-        Find a `Note` object from the provided term
+    @staticmethod
+    def find(term: str) -> Set[str]:
+        match_pattern = f"\\b{term}\\b"
+        notes_found = Note.query.filter(Note.text.op('REGEXP')(match_pattern)).all()
+        comments_found = db.session.query(Note).join(Comment).filter(
+            Comment.text.op('REGEXP')(match_pattern)
+        ).all()
 
-        Usage:
-        ---
-        Given the notebook has only one note, which is {name: Wed, text: It's a rainy day.}
+        return set(notes_found + comments_found)
 
-        >>> nb = Notebook()
-        >>> nb.add(name='Wed', text="It's a rainy day.")
-        True
-        >>> nb.find('rainy')
-        ['Wed']
-        >>> nb.find('sunny')
-        []
+    @staticmethod
+    def fetch_note(name: str):
+        note = Note.query.filter_by(name=name).first()
 
-        :param term: user-provided term that might be in a note
-        :return: a list of `Note` objects that contains provided term
-        """
+        if not note:
+            return None
+        else:
+            return note
 
-        results = []
-        tokenizer = RegexpTokenizer(r'\w+')
+     #   comments = [
+     #       {"comment": comment.text, "date": comment.date}
+     #       for comment in note.comments
+     #   ]
 
-        for text, name in self._inv_notes.items():
-            bow = set(tokenizer.tokenize(text.lower()))
-            if term in bow:
-                results.append(name)
+     #   return {
+     #       'name': name,
+     #       'text': note.text,
+     #       'comments': comments
+     #   }
 
-        return results
+    @staticmethod
+    def clear():
+        db.session.query(Note).delete()
+        db.session.commit()
 
-    def clear(self):
-        """
-        Clear all existing notes in the notebook
+    @staticmethod
+    def delete_note(note_id: int):
+        note = db.session.query(Note).filter_by(id=note_id).first()
+        assert note is not None
 
-        Usage:
-        ---
-
-        >>> nb = Notebook()
-        >>> nb.add(name='1', text='first')
-        >>> nb.clear()
-        True
-        """
-        # Clear cached notes
-        for cache in CACHE_DIR.iterdir():
-            cache.unlink(missing_ok=True)
-
-        # Reset attributes
-        self.__init__()
-
-
+        try:
+            db.session.delete(note)
+            db.session.commit()
+        except IntegrityError as e:
+            return e

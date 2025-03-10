@@ -1,4 +1,4 @@
-from notes import Notebook
+from notebook.notes import Notebook
 
 from flask import (
     Flask,
