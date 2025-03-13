@@ -5,45 +5,74 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
 </head>
 
-
 <body>
     <h1>Notebook</h1>
 
-    <!--Search term-->
-    <form action="/" method="post">
-        <label for="search">Search term:</label>
-        <input type="text" name="search"/>
-        <input type="submit" value="Search"/>
-        <input type="button" value="Reset" onclick="location.reload();"/>
-    </form>
+    <!-- Search Term -->
+    <label for="search">Search term:</label>
+    <input type="text" id="search-term"/>
+    <button onclick="searchNotes()">Search</button>
+    <button onclick="clearSearch()">Clear Search</button>
 
-    <!--List all notes from last session-->
-    <h2>
-        <b>All notes</b> <br><br>
+    <!-- Notes List (Rendered Initially by Flask) -->
+    <h2>All Notes</h2>
+    <ul id="notes-list">
         {% for note in notes %}
-            <a href="{{ url_for('fetch_notes', name=note) }}">{{ note }}</a><br>
+            <li><a href="/{{ note.name }}">{{ note.name }}</a></li>
         {% endfor %}
-    </h2>
+    </ul>
 
-    <!-- Buttons: Show All Notes & Clear Notebook -->
-    <form action="/clear" method="post" style="display:inline;">
-        <button type="submit">Clear</button>
-    </form>
-    <a href="/"><button type="button">Show All Notes</button></a>
-
-    <!--The field for adding new note-->
+    <!-- Add New Note Form -->
     <h2>
-        <form action="/" method="post">
-            <label for="name"></label>
-            <textarea name="name" rows="1" cols="50"></textarea>
+        <form id="add-note-form" method="POST">
+            <label for="title"></label>
+            <textarea id="title" name="title" rows="1" cols="50" placeholder="Enter note title"></textarea>
             <br>
-            <label for="text"></label>
-            <textarea id="text" name="text" rows="10" cols="50" required></textarea>
+            <label for="content"></label>
+            <textarea id="content" name="content" rows="10" cols="50" placeholder="Enter contents" required></textarea>
             <br>
-            <button type="submit">Add Note</button>
+            <button type="submit">Add Note</button>  <!-- Use normal form submit -->
         </form>
     </h2>
-</body>
 
+    <script>
+        function searchNotes(){
+            let searchInput = document.getElementById("search-term");
+            let searchTerm = searchInput.value.trim();
+
+            if (!searchTerm){
+                window.location.href = "/";
+                return;
+            }
+
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            xhr.onload = function(){
+                if (xhr.status == 200){
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(xhr.responseText, 'text/html');
+                    let newNotesList = doc.getElementById("notes-list").innerHTML;
+                    document.getElementById("notes-list").innerHTML = newNotesList;
+
+                    searchInput.value = "";
+                } else {
+                    console.error("Search failed.");
+                }
+            };
+
+            xhr.onerror = function(){
+                console.error("Request failed.");
+            };
+
+            xhr.send("search_term=" + encodeURIComponent(searchTerm));
+        }
+
+        function clearSearch(){
+            window.location.href = "/";
+        }
+    </script>
+</body>
 
 </html>

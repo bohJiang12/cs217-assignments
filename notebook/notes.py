@@ -36,7 +36,7 @@ class Notebook:
     """Notebook kernel interacting between Flask web server and backend database"""
 
     @staticmethod
-    def show_all_note_names() -> List[str]:
+    def show_all_note_names() -> List[Note]:
         return db.session.query(Note.name).all()
 
     @staticmethod
@@ -51,7 +51,7 @@ class Notebook:
             return e
 
     @staticmethod
-    def add_comment(text: str, note_id: int) -> bool:
+    def add_comment(text: str, note_id: int) -> Comment | None:
         # Sanity check even though assuming its tailored note exists
         note = db.session.execute(
             db.select(Note).filter_by(id=note_id)
@@ -59,15 +59,15 @@ class Notebook:
 
         if not note:
             print(f'Queried note (id={note_id}) does not exist')
-            return False
+            return None
 
         new_comment = Comment(text=text, note_id=note_id)
         db.session.add(new_comment)
         db.session.commit()
-        return True
+        return new_comment
 
     @staticmethod
-    def find(term: str) -> Set[str]:
+    def find(term: str) -> Set[Note]:
         match_pattern = f"\\b{term}\\b"
         notes_found = Note.query.filter(Note.text.op('REGEXP')(match_pattern)).all()
         comments_found = db.session.query(Note).join(Comment).filter(

@@ -1,3 +1,4 @@
+from notebook import app
 from notebook.notes import Notebook
 
 from flask import (
@@ -10,9 +11,6 @@ from flask import (
     Response
 )
 
-app = Flask(__name__)
-
-nb = Notebook()
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -21,19 +19,28 @@ def index():
     Returns:
         a rendered website from a template
     """
-    notes = nb.notes()
 
     if request.method == 'POST':
-        search_term = request.form.get("search", "").strip()
-        name = request.form.get("name", "").strip()
-        text = request.form.get("text", "").strip()
+        search_term = request.form.get("search_term", "").strip()
+        name = request.form.get("title", "").strip()
+        text = request.form.get("content", "").strip()
 
+        # While user searches any note containing a term
         if search_term:
-            notes = nb.find(search_term)
+            notes = Notebook.find(term=search_term)
+            return render_template("homepage.html", notes=notes)
 
+        # While user adds a new note
         elif name and text:
-            nb.add(name, text)
-            return redirect(url_for('index'))
+            result = Notebook.add_note(name=name, text=text)
+
+            if result is not True:
+                return result
+
+            return redirect("/")
+
+    # Default: displaying names of exisiting notes in DB
+    notes = Notebook.show_all_note_names()
 
     return render_template('homepage.html', notes=notes)
 
@@ -43,29 +50,33 @@ def help():
     return "<p>Getting extremely minimal help via a GET request</p>"
 
 
-@app.route('/notes')
-def fetch_notes():
-    """Load a note's contents in the page `/notes`
+@app.route('/<string:name>', methods=['GET', 'POST', 'DELETE'])
+def fetch_note(name: str):
+    note = Notebook.fetch_note(name)
 
-    Returns:
-        a rendered page displaying contents of a note
-    """
-    note_name = request.args.get("name")
-    note_text = nb[note_name].text()
+    if not note:
+        return redirect(url_for('index'))
 
-    return render_template('contents.html', note_name=note_name, note_text=note_text)
+    if request.method == 'POST':
+        comment_text = request.form.get('text', '').strip()
 
+        if comment_text:
+            comment = Notebook.add_comment(comment_text, note.id)
+            return jsonify({
+                'comment_text': comment.text,
+                'comment_date': comment.date
+            })
 
-@app.route('/clear', methods=['POST'])
-def clear_notes():
-    """Clear current notebook
+    if request.method == 'DELETE':
+        Notebook.delete_note(note.id)
+        return jsonify({'message': 'Note deleted successfully!'}), 200
 
-    Returns:
-        return to homepage
-    """
-    nb.clear()
-    return redirect(url_for('index'))
+    comments = note.comments
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return render_template(
+        "contents.html",
+        note_id=note.id,
+        note_name=note.name,
+        note_text=note.text,
+        comments=comments
+    )

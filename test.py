@@ -8,7 +8,7 @@ class TestNotebook(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        app.config["SQLALCHEMY_DATABASE_URI"]= "sqlite:///:memory"
+        app.config["SQLALCHEMY_DATABASE_URI"]= "sqlite:///test-db.sqlite"
         app.config["TESTING"] = True
 
         with app.app_context():
@@ -92,8 +92,13 @@ class TestNotebook(unittest.TestCase):
             Notebook.add_note('note_2', 'it is sunny today.')
             Notebook.add_note('note_3', 'it is cloudy today.')
 
+            note_1 = db.session.execute(
+                db.select(Note).filter_by(name='note_1')
+            ).scalar_one()
+
             Notebook.delete_note(note_id=1)
             self.assertEqual(db.session.query(Note).count(), 2)
+            self.assertEqual(db.session.query(Comment).count(), 0)
 
             Notebook.delete_note(note_id=2)
             self.assertEqual(db.session.query(Note).count(), 1)
