@@ -39,8 +39,8 @@ class Comment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(120), nullable=False)
-    date = db.Column(db.String(20), nullable=False, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=False)
+    date = db.Column(db.String(20), nullable=False)
+    note_id = db.Column(db.Integer, db.ForeignKey('note.id', ondelete="CASCADE"), nullable=False)
 
     def __repr__(self) -> str:
         return f"Comment(id={self.id}, text={self.text}, date={self.date}, note_id={self.note_id})"

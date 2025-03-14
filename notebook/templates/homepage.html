@@ -22,6 +22,9 @@
         {% endfor %}
     </ul>
 
+    <!-- Clear notebook button -->
+    <button onclick="clearNotes()" style="color: red;">Clear All Notes</button>
+    
     <!-- Add New Note Form -->
     <h2>
         <form id="add-note-form" method="POST">
@@ -71,6 +74,26 @@
 
         function clearSearch(){
             window.location.href = "/";
+        }
+
+	function clearNotes() {
+            if (!confirm("Are you sure you want to clear all notes? This action cannot be undone.")) {
+                return;
+            }
+
+            let xhr = new XMLHttpRequest();
+            xhr.open("DELETE", "/", true);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert("All notes have been cleared.");
+                    location.reload();
+                } else {
+                    alert("Failed to clear notes.");
+                }
+            };
+
+            xhr.send();
         }
     </script>
 </body>

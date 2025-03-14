@@ -12,7 +12,7 @@ from flask import (
 )
 
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=['GET', 'POST', 'DELETE'])
 def index():
     """Index/home page of the website which supports either GET/POST
 
@@ -38,6 +38,10 @@ def index():
                 return result
 
             return redirect("/")
+
+    if request.method == 'DELETE':
+        Notebook.clear()
+        return jsonify({"message": "All notes are removed successfully!"}), 200
 
     # Default: displaying names of exisiting notes in DB
     notes = Notebook.show_all_note_names()
