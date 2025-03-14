@@ -1,67 +1,42 @@
-# CS217 Assignment 1
+# CS217 Assignment 2
 
 **Author**: Bohan Jiang
 
 ## Introduction
 
-The assignment implements three web services interacting with a note-taking app. The services are `Flask`, `FastAPI` and `Streamlit`.
-
-This note-taking app achieves fundamental behaviors including:
-- See all notes with their names
-- See the content of a specific note
-- Search for a specific note by providing a term might be in
-- Add a new note
-- Clear the notebook
+Based on the functionalities implemented by assignment 1, this assignment adds several functions to it:
+1. Enable users to add comments to an existing note
+2. Enable delete function for users to delete an existing note
+3. Deploy a sqlite database to the backend for query/store data of the note-taking app
 
 ## File structure
-- `notes.py`: the standalone notebook module for APIs to interact with
-- `api.py`: FastAPI implementation
-- `app.py`: Flask implementation
-- `stream.py`: Streamlit implementation
+- `/notebook`: python package for running the Flask note-taking app
+  - `__init__.py`: the file for initializing and configuring module imports
+  - `model.py`: module that contains `SQLAlchemy.ORM` classes
+  - `notes.py`: module that interacts with front-end web server and back-end DB
+  - `routes.py`: module configuring the Flask web app
+- `/instance`: dir that contains database file
 - `requirements.txt`: package dependency in desired virtual env
 - `/templates`: a directory storing HTML templates for rendering webpages in Flask app
 - `/static`: a directory for storing `.css` style sheet for HTML page
-- `/test`: a directory for unit-testing `notes.py`
+- `test.py`: test script for unit-testing `/notebook/notes.py`
+- `run.py`: main script for running the note-taking app
 
 ## Usage
-Before running, create a python virtual environment and activate it. Then, run below:
+First, activating the python virtual environment and install required packages:
 ```
+source <venv_name>/bin/activate
+
 pip install -r requirements.txt
 ```
 
-For running FastAPI, users can proceed interactions either in web or CLI using `curl`:
-
-For example, to list all existing notes in current notebook:
+In CLI, run command:
 ```
-http://127.0.0.1:8000/list  # visit this local host
-
-curl http://127.0.0.1:8000/list  # by curl
-```
-
-In particular, for adding a note, this is a POST request, users should use `curl` for updating the status of the app:
-```
-curl -X 'POST' \
-  'http://127.0.0.1:8000/add' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "name": "Mon",
-  "contents": "Today is monday, but it is rainy."
-}'
-```
-
-In addition, for running Flask web app, in CLI run:
-```
-python app.py
-```
-
-or for Streamlit app, please run:
-```
-streamlit run stream.py
+python run.py
 ```
 
 Then, you can complete all functionalities in this web app.
 
 > [!NOTE]
-> For the very first time, no any note has been added. Simply add a new note to see the change of the site.
+> For creating a new note's title, avoid including slash "/" in the string since the app doesn't parse this case carefully.
 
