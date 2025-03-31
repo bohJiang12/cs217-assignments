@@ -1,0 +1,8 @@
+# Dirs to be ignored
+instance/
+.venv/
+
+# Files to be ignored
+test.py
+run.sh
+

@@ -1,14 +1,15 @@
 import unittest
-from notebook import notes, app, db
+from notebook import app, db
 from notebook.model import Comment, Note
 from notebook.notes import Notebook
+
 
 class TestNotebook(unittest.TestCase):
     """Unit test for `Notebook` class"""
 
     @classmethod
     def setUpClass(cls):
-        app.config["SQLALCHEMY_DATABASE_URI"]= "sqlite:///test-db.sqlite"
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test-db.sqlite"
         app.config["TESTING"] = True
 
         with app.app_context():

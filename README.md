@@ -1,13 +1,11 @@
-# CS217 Assignment 2
+# CS217 Assignment 3
 
 **Author**: Bohan Jiang
 
 ## Introduction
 
-Based on the functionalities implemented by assignment 1, this assignment adds several functions to it:
-1. Enable users to add comments to an existing note
-2. Enable delete function for users to delete an existing note
-3. Deploy a sqlite database to the backend for query/store data of the note-taking app
+Based on the functionalities implemented by assignment 2, this assignment wraps existing functionalities
+into a docker container.
 
 ## File structure
 - `/notebook`: python package for running the Flask note-taking app
@@ -20,22 +18,19 @@ Based on the functionalities implemented by assignment 1, this assignment adds s
 - `/templates`: a directory storing HTML templates for rendering webpages in Flask app
 - `/static`: a directory for storing `.css` style sheet for HTML page
 - `test.py`: test script for unit-testing `/notebook/notes.py`
-- `run.py`: main script for running the note-taking app
+- `app.py`: main script for running the note-taking app
+- `Dockerfile`: docker file for building an image
+- `run.sh`: main script for building and running a docker container
 
 ## Usage
-First, activating the python virtual environment and install required packages:
-```
-source <venv_name>/bin/activate
-
-pip install -r requirements.txt
-```
-
+- **Step 1**:
 In CLI, run command:
 ```
-python run.py
+chmod +x run.sh
+./run.sh
 ```
-
-Then, you can complete all functionalities in this web app.
+- **Step 2**:
+Then, access the web server using address `localhost:5001`.
 
 > [!NOTE]
 > For creating a new note's title, avoid including slash "/" in the string since the app doesn't parse this case carefully.
